@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Planner</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Tahoma,sans-serif;background:#f4f6f9;color:#202124}
+button,input,select{font-family:inherit}button{cursor:pointer}
+.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-box{width:100%;max-width:400px;background:#fff;padding:35px;border-radius:20px;box-shadow:0 12px 40px #00000012;text-align:center}
+.logo{font-size:42px;margin-bottom:10px}.auth-box h1{margin:0 0 8px}.sub{color:#777;margin-bottom:25px}
+input,select{width:100%;padding:13px;border:1px solid #ddd;border-radius:9px;margin-bottom:12px;font-size:15px;outline:none}
+.main-btn{width:100%;padding:13px;border:0;border-radius:9px;background:#222;color:#fff;font-size:16px}
+.switch{margin-top:18px;color:#777}.switch span{color:#222;font-weight:bold;cursor:pointer}.error{color:#d33;margin-top:12px}
+.app{display:none}header{height:70px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 6%;box-shadow:0 2px 12px #0000000d;position:sticky;top:0;z-index:10}
+header h2{margin:0}.logout{border:0;background:#eee;padding:9px 15px;border-radius:8px}.container{width:92%;max-width:1100px;margin:30px auto}
+.birthday{background:#fff;border-radius:20px;padding:30px 20px;text-align:center;margin-bottom:25px;box-shadow:0 7px 25px #0000000d;animation:appear .7s ease}
+.birthday h1{margin:0 0 10px;font-size:30px}.birthday p{margin:0;color:#777}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:25px}.stat{background:#fff;padding:20px;border-radius:15px;box-shadow:0 5px 18px #0000000a}
+.stat-title{color:#777;font-size:14px}.stat-number{font-size:28px;font-weight:bold;margin-top:8px}.progress{height:9px;background:#eee;border-radius:20px;overflow:hidden;margin-top:10px}.progress-bar{height:100%;width:0;background:#222;transition:.4s}
+.add-box,.tasks-box{background:#fff;padding:22px;border-radius:17px;margin-bottom:25px;box-shadow:0 5px 18px #0000000a}.add-box h2,.tasks-box h2{margin-top:0}
+.add-grid{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px}.add-grid input,.add-grid select{margin:0}.add-btn{border:0;background:#222;color:#fff;padding:0 20px;border-radius:9px}
+.subjects{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:25px}.subject{background:#fff;padding:20px;border-radius:15px;box-shadow:0 5px 18px #0000000a}.subject h3{margin-top:0}.subject-count{color:#777}
+.task{display:flex;align-items:center;gap:12px;padding:15px 5px;border-bottom:1px solid #eee}.task:last-child{border-bottom:0}.task-check{width:20px;height:20px;margin:0}.task-info{flex:1}.task-title{font-weight:bold}.task-meta{color:#888;font-size:13px;margin-top:5px}.done .task-title{text-decoration:line-through;color:#999}.delete{border:0;background:#f2f2f2;color:#777;padding:7px 10px;border-radius:7px}.empty{text-align:center;color:#999;padding:30px}
+@keyframes appear{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:800px){.stats{grid-template-columns:1fr}.subjects{grid-template-columns:repeat(2,1fr)}.add-grid{grid-template-columns:1fr}.add-btn{padding:13px}}
+@media(max-width:500px){header{padding:0 4%}header h2{font-size:18px}.container{width:94%}.birthday h1{font-size:25px}.subjects{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="auth" id="auth">
+<div class="auth-box">
+<div class="logo">📚</div>
+<h1 id="authTitle">إنشاء حساب</h1>
+<div class="sub" id="authSub">أنشئ حسابك وابدأ تنظيم مذاكرتك</div>
+
+<div id="registerForm">
+<input id="newUsername" type="text" placeholder="اسم المستخدم">
+<input id="newPassword" type="password" placeholder="كلمة المرور">
+<input id="confirmPassword" type="password" placeholder="تأكيد كلمة المرور">
+<button class="main-btn" onclick="createAccount()">إنشاء الحساب</button>
+<div class="switch">لديك حساب؟ <span onclick="showLogin()">تسجيل الدخول</span></div>
+</div>
+
+<div id="loginForm" style="display:none">
+<input id="username" type="text" placeholder="اسم المستخدم">
+<input id="password" type="password" placeholder="كلمة المرور">
+<button class="main-btn" onclick="login()">تسجيل الدخول</button>
+<div class="switch">ليس لديك حساب؟ <span onclick="showRegister()">إنشاء حساب</span></div>
+</div>
+<div class="error" id="authError"></div>
+</div>
+</div>
+
+<div class="app" id="app">
+<header>
+<h2>📚 Study Planner</h2>
+<button class="logout" onclick="logout()">تسجيل الخروج</button>
+</header>
+
+<main class="container">
+<section class="birthday">
+<h1>كل سنة وانتي طيبة يا دكتورة 🎂</h1>
+<p>أتمنى لكِ سنة جميلة مليانة نجاح وتوفيق في دراستك</p>
+</section>
+
+<section class="stats">
+<div class="stat"><div class="stat-title">إجمالي المهام</div><div class="stat-number" id="totalTasks">0</div></div>
+<div class="stat"><div class="stat-title">المهام المكتملة</div><div class="stat-number" id="completedTasks">0</div></div>
+<div class="stat"><div class="stat-title">نسبة الإنجاز</div><div class="stat-number" id="percentage">0%</div><div class="progress"><div class="progress-bar" id="progressBar"></div></div></div>
+</section>
+
+<section class="add-box">
+<h2>إضافة مهمة جديدة</h2>
+<div class="add-grid">
+<input id="taskName" placeholder="مثلاً: حل أسئلة الفصل الأول">
+<select id="taskSubject">
+<option>عربي</option><option>English</option><option>Physics</option><option>Programming</option><option>تاريخ</option>
+</select>
+<input id="taskDate" type="date">
+<button class="add-btn" onclick="addTask()">+ إضافة</button>
+</div>
+</section>
+
+<section class="subjects">
+<div class="subject"><h3>📖 عربي</h3><div class="subject-count" id="arabicCount">0 مهمة</div></div>
+<div class="subject"><h3>🇬🇧 English</h3><div class="subject-count" id="englishCount">0 مهمة</div></div>
+<div class="subject"><h3>⚛️ Physics</h3><div class="subject-count" id="physicsCount">0 مهمة</div></div>
+<div class="subject"><h3>💻 Programming</h3><div class="subject-count" id="programmingCount">0 مهمة</div></div>
+</section>
+
+<section class="tasks-box">
+<h2>📋 مهامي</h2>
+<div id="tasksList"></div>
+</section>
+</main>
+</div>
+
+<script>
+let currentUser=null;
+const accountKey="studyPlannerAccount";
+
+function getAccount(){return JSON.parse(localStorage.getItem(accountKey)||"null")}
+function showError(m){document.getElementById("authError").textContent=m}
+function clearError(){document.getElementById("authError").textContent=""}
+
+function createAccount(){
+ const u=document.getElementById("newUsername").value.trim();
+ const p=document.getElementById("newPassword").value;
+ const c=document.getElementById("confirmPassword").value;
+ if(u.length<3)return showError("اسم المستخدم يجب أن يكون 3 أحرف على الأقل");
+ if(p.length<4)return showError("كلمة المرور يجب أن تكون 4 أحرف على الأقل");
+ if(p!==c)return showError("كلمتا المرور غير متطابقتين");
+ if(getAccount())return showError("يوجد حساب بالفعل على هذا الجهاز");
+ localStorage.setItem(accountKey,JSON.stringify({username:u,password:p}));
+ localStorage.setItem("studyTasks_"+u,JSON.stringify([]));
+ alert("تم إنشاء الحساب بنجاح");
+ showLogin();
+}
+
+function login(){
+ const a=getAccount(),u=document.getElementById("username").value.trim(),p=document.getElementById("password").value;
+ if(!a)return showError("أنشئ حسابًا أولًا");
+ if(u!==a.username||p!==a.password)return showError("اسم المستخدم أو كلمة المرور غير صحيحة");
+ currentUser=u;
+ document.getElementById("auth").style.display="none";
+ document.getElementById("app").style.display="block";
+ loadTasks();
+}
+function logout(){currentUser=null;document.getElementById("app").style.display="none";document.getElementById("auth").style.display="flex";showLogin()}
+function showLogin(){document.getElementById("registerForm").style.display="none";document.getElementById("loginForm").style.display="block";document.getElementById("authTitle").textContent="تسجيل الدخول";document.getElementById("authSub").textContent="أكمل مذاكرتك من حيث توقفت";clearError()}
+function showRegister(){document.getElementById("loginForm").style.display="none";document.getElementById("registerForm").style.display="block";document.getElementById("authTitle").textContent="إنشاء حساب";document.getElementById("authSub").textContent="أنشئ حسابك وابدأ تنظيم مذاكرتك";clearError()}
+
+function getTasks(){return JSON.parse(localStorage.getItem("studyTasks_"+currentUser)||"[]")}
+function saveTasks(t){localStorage.setItem("studyTasks_"+currentUser,JSON.stringify(t))}
+
+function addTask(){
+ const n=document.getElementById("taskName").value.trim(),s=document.getElementById("taskSubject").value,d=document.getElementById("taskDate").value;
+ if(!n)return alert("اكتب اسم المهمة أولًا");
+ const t=getTasks();
+ t.push({id:Date.now(),name:n,subject:s,date:d,completed:false});
+ saveTasks(t);document.getElementById("taskName").value="";document.getElementById("taskDate").value="";loadTasks();
+}
+function toggleTask(id){const t=getTasks(),x=t.find(a=>a.id===id);if(x)x.completed=!x.completed;saveTasks(t);loadTasks()}
+function deleteTask(id){saveTasks(getTasks().filter(x=>x.id!==id));loadTasks()}
+
+function loadTasks(){
+ const t=getTasks(),list=document.getElementById("tasksList");list.innerHTML="";
+ if(!t.length)list.innerHTML='<div class="empty">لا توجد مهام حاليًا — أضف أول مهمة 📚</div>';
+ t.forEach(x=>{
+  const d=document.createElement("div");d.className="task"+(x.completed?" done":"");
+  d.innerHTML='<input class="task-check" type="checkbox" '+(x.completed?"checked":"")+' onchange="toggleTask('+x.id+')"><div class="task-info"><div class="task-title"></div><div class="task-meta">'+x.subject+(x.date?" • "+x.date:"")+'</div></div><button class="delete" onclick="deleteTask('+x.id+')">حذف</button>';
+  d.querySelector(".task-title").textContent=x.name;
+  list.appendChild(d);
+ });
+ updateStats(t);
+}
+function updateStats(t){
+ const total=t.length,done=t.filter(x=>x.completed).length,p=total?Math.round(done/total*100):0;
+ document.getElementById("totalTasks").textContent=total;
+ document.getElementById("completedTasks").textContent=done;
+ document.getElementById("percentage").textContent=p+"%";
+ document.getElementById("progressBar").style.width=p+"%";
+ [["عربي","arabicCount"],["English","englishCount"],["Physics","physicsCount"],["Programming","programmingCount"]].forEach(([s,id])=>document.getElementById(id).textContent=t.filter(x=>x.subject===s).length+" مهمة");
+}
+window.onload=()=>getAccount()?showLogin():showRegister();
+</script>
+</body>
+</html>
